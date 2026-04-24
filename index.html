@@ -6,7 +6,6 @@
     <title>ระบบส่งคะแนนความสะอาด - TSN</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     
-    <!-- DataTables & Chart.js -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -86,7 +85,6 @@
 </head>
 <body>
 
-<!-- 🟢 1. มุมมองนักเรียน (Student View) -->
 <div id="studentView">
     <div class="header-banner">
         <img src="https://www.tsn.ac.th/web/wp-content/uploads/2013/12/Logo_Blue-700x639.png" alt="TSN Logo">
@@ -143,28 +141,26 @@
                 <button type="submit" class="btn-submit" id="btnSubmit">บันทึกข้อมูลเข้าระบบ</button>
             </div>
             
-            <div class="admin-link" onclick="openLoginModal()">[ เข้าสู่ระบบผู้ดูแลระบบ ]</div>
+            <div class="admin-link" onclick="openLoginModal()">[ เข้าสู่ระบบคณะสี / ผู้ดูแลระบบ ]</div>
         </form>
     </div>
 </div>
 
-<!-- 🔴 2. มุมมองผู้ดูแลระบบ (Admin View) -->
 <div id="adminView">
     <div class="header-banner" style="padding: 20px;">
-        <h2 style="margin: 0; color: white;">แดชบอร์ดผู้ดูแลระบบ</h2>
+        <h2 style="margin: 0; color: white;">แดชบอร์ดสรุปผลคะแนน</h2>
     </div>
     
     <div class="wrapper" style="margin-top: 30px; max-width: 1100px;">
         <div class="admin-header">
-            <h3 style="color: var(--tsn-green); margin:0; font-weight: bold;">วิเคราะห์และจัดการฐานข้อมูล</h3>
+            <h3 id="adminTitle" style="color: var(--tsn-green); margin:0; font-weight: bold;">วิเคราะห์และจัดการฐานข้อมูล</h3>
             <button class="btn-logout" onclick="logoutAdmin()">ออกจากระบบ</button>
         </div>
 
-        <div class="filter-panel">
+        <div class="filter-panel" id="teamFilterContainer">
             <div class="filter-group" id="monthFilterGroup">
                 <span class="filter-label">เดือน/ปี:</span>
-                <!-- เดือนเจนอัตโนมัติ -->
-            </div>
+                </div>
             <div class="filter-group">
                 <span class="filter-label">คณะสี:</span>
                 <span class="chip active" data-type="team" data-val="ALL" onclick="toggleFilter('team', 'ALL')">ทั้งหมด</span>
@@ -204,7 +200,7 @@
                             <th>คณะสีที่รับการประเมิน</th>
                             <th>ผู้บันทึก (คณะสี)</th>
                             <th>คะแนนเฉลี่ย</th>
-                            <th>จัดการ</th>
+                            <th id="actionColHeader">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -214,11 +210,19 @@
     </div>
 </div>
 
-<!-- ================= Modal ================= -->
 <div class="modal-overlay" id="successModal"><div class="modal-card"><div style="font-size: 50px; color: #10b981; margin-bottom: 10px;">✓</div><h2 style="margin: 0 0 10px 0; color: #1e293b;">สำเร็จ!</h2><p id="modalText" style="color: #64748b; margin-bottom: 20px;">ระบบบันทึกคะแนนเรียบร้อยแล้ว</p><button class="btn-modal" onclick="closeSuccessModal()">ตกลง</button></div></div>
-<div class="modal-overlay" id="loginModal"><div class="modal-card"><h2 style="color: var(--tsn-green); margin-top: 0;">ผู้ดูแลระบบ</h2><p style="color: #64748b; font-size: 14px;">กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน</p><input type="text" id="adminUser" placeholder="ชื่อผู้ใช้งาน" style="margin-bottom: 10px;"><input type="password" id="adminPass" placeholder="รหัสผ่าน" style="margin-bottom: 10px;"><p id="loginError" style="color: red; font-size: 13px; display: none; margin: 0 0 10px 0;">ข้อมูลไม่ถูกต้อง!</p><button class="btn-modal" id="btnLogin" onclick="verifyLogin()">เข้าสู่ระบบ</button><button class="btn-modal" style="background: #cbd5e0; color: #4a5568; margin-top: 10px;" onclick="closeLoginModal()">ยกเลิก</button></div></div>
+<div class="modal-overlay" id="loginModal">
+    <div class="modal-card">
+        <h2 style="color: var(--tsn-green); margin-top: 0;">เข้าสู่ระบบ</h2>
+        <p style="color: #64748b; font-size: 14px;">ผู้ดูแลระบบ หรือ คณะสี (ใช้ชื่อคณะสีเป็น Username)</p>
+        <input type="text" id="adminUser" placeholder="ชื่อผู้ใช้งาน" style="margin-bottom: 10px;">
+        <input type="password" id="adminPass" placeholder="รหัสผ่าน" style="margin-bottom: 10px;">
+        <p id="loginError" style="color: red; font-size: 13px; display: none; margin: 0 0 10px 0;">ข้อมูลไม่ถูกต้อง!</p>
+        <button class="btn-modal" id="btnLogin" onclick="verifyLogin()">เข้าสู่ระบบ</button>
+        <button class="btn-modal" style="background: #cbd5e0; color: #4a5568; margin-top: 10px;" onclick="closeLoginModal()">ยกเลิก</button>
+    </div>
+</div>
 
-<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
@@ -228,6 +232,9 @@
 <script>
     // ⚠️ สำคัญมาก: ใส่ Web App URL ของคุณตรงนี้!!!
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyyT7WjmXsfg3OH1bui1DgwMX863yzX4hXOnLCsEqdOWPSSw-LNmyZHupHy6bRtER3oVw/exec";
+
+    // ตัวแปรเก็บสิทธิ์ของผู้ที่ล็อกอิน
+    let currentUser = null;
 
     // ================= ส่วนจัดการฟอร์ม (นักเรียน) =================
     const areas = [
@@ -273,7 +280,6 @@
         document.getElementById('hiddenGrandTotal').value = avg.toFixed(2);
     }
 
-    // [อัปเดตใหม่] ใช้ Fetch API ส่งข้อมูล
     document.getElementById('submissionForm').onsubmit = async function(e) {
         e.preventDefault();
         const btn = document.getElementById('btnSubmit');
@@ -311,7 +317,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ================= ส่วนระบบ Admin =================
+    // ================= ส่วนระบบ Admin / Team Login =================
     let globalAdminData = []; 
     let myDataTable = null;
     let myChart = null;
@@ -321,7 +327,6 @@
     function openLoginModal() { document.getElementById('loginModal').classList.add('active'); document.getElementById('loginError').style.display = 'none'; }
     function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
 
-    // [อัปเดตใหม่] ใช้ Fetch API ตรวจสอบ Login
     async function verifyLogin() {
         const u = document.getElementById('adminUser').value;
         const p = document.getElementById('adminPass').value;
@@ -336,10 +341,32 @@
             const result = await response.json();
 
             btn.innerText = "เข้าสู่ระบบ"; btn.disabled = false;
-            if(result.status === "success" && result.data === true) {
+            
+            // ตรวจสอบข้อมูลสิทธิ์
+            if(result.status === "success" && result.data) {
+                
+                // รองรับข้อมูลสิทธิ์จาก Backend
+                if (result.data === true) {
+                     currentUser = { role: "ADMIN", name: "Admin" }; // เผื่อกรณีโค้ดหลังบ้านยังเป็นเวอร์ชันเก่า
+                } else {
+                     currentUser = result.data; // {role: 'TEAM' หรือ 'ADMIN', name: 'ชื่อ'}
+                }
+
                 closeLoginModal();
                 document.getElementById('studentView').style.display = 'none';
                 document.getElementById('adminView').style.display = 'block';
+                
+                // ====== ซ่อน/แสดง ฟังก์ชันตามสิทธิ์ ======
+                if (currentUser.role === "TEAM") {
+                    document.getElementById('adminTitle').innerText = "ข้อมูลคะแนนของ: " + currentUser.name;
+                    document.getElementById('teamFilterContainer').style.display = 'none'; // ซ่อน Filter คณะ
+                    document.getElementById('actionColHeader').style.display = 'none'; // ซ่อนคอลัมน์จัดการ
+                } else {
+                    document.getElementById('adminTitle').innerText = "วิเคราะห์และจัดการฐานข้อมูล";
+                    document.getElementById('teamFilterContainer').style.display = 'block';
+                    document.getElementById('actionColHeader').style.display = 'table-cell';
+                }
+
                 fetchDataFromSheet(); 
             } else {
                 document.getElementById('loginError').style.display = 'block';
@@ -351,13 +378,13 @@
     }
 
     function logoutAdmin() {
+        currentUser = null;
         document.getElementById('adminView').style.display = 'none';
         document.getElementById('studentView').style.display = 'block';
         document.getElementById('adminUser').value = ""; document.getElementById('adminPass').value = "";
         window.scrollTo(0, 0);
     }
 
-    // [อัปเดตใหม่] ใช้ Fetch API ดึงข้อมูล
     async function fetchDataFromSheet() {
         document.getElementById('loadingData').style.display = 'block';
         document.getElementById('tableWrapper').style.display = 'none';
@@ -377,6 +404,7 @@
     }
 
     function generateMonthChips() {
+        // ให้สร้างชิปแค่เดือน (ไม่สร้างคณะสีเพราะซ่อนไว้ในฝั่งทีมแล้ว)
         let uniqueMonths = new Set();
         globalAdminData.forEach(item => {
             const d = item.record[3];
@@ -386,7 +414,12 @@
         let sortedMonths = Array.from(uniqueMonths).sort().reverse(); 
         let html = `<span class="chip active" data-type="month" data-val="ALL" onclick="toggleFilter('month', 'ALL')">ทั้งหมด</span>`;
         sortedMonths.forEach(m => { html += `<span class="chip" data-type="month" data-val="${m}" onclick="toggleFilter('month', '${m}')">${m}</span>`; });
-        document.getElementById('monthFilterGroup').innerHTML = `<span class="filter-label">เดือน/ปี:</span>` + html;
+        
+        // เราจะไม่ใช้ innerHTML ทั้งกล่อง เพื่อรักษา Filter คณะสีไว้ ให้เจาะจงเฉพาะกลุ่มเดือน
+        const monthGroup = document.getElementById('monthFilterGroup');
+        if(monthGroup) {
+             monthGroup.innerHTML = `<span class="filter-label">เดือน/ปี:</span>` + html;
+        }
     }
 
     function toggleFilter(type, value) {
@@ -409,6 +442,12 @@
 
     function applyFilters() {
         let filteredData = [];
+        
+        // ถ้าเป็น TEAM ล็อกอินมา ให้บังคับดูแค่สีตัวเองเท่านั้น
+        if (currentUser && currentUser.role === "TEAM") {
+            selectedTeams = new Set([currentUser.name]);
+        }
+
         globalAdminData.forEach(item => {
             const dateStr = item.record[3] || ""; 
             const monthStr = dateStr.substring(0,7);
@@ -491,10 +530,11 @@
                 <td><strong style="color:var(--tsn-green)">${r[2]}</strong></td>
                 <td>${r[5]} <br><span style="font-size:11px; color:gray;">(${r[6]})</span></td>
                 <td><strong style="font-size:18px;">${parseFloat(r[22]).toFixed(2)}</strong></td>
+                ${currentUser && currentUser.role === "ADMIN" ? `
                 <td>
                     <button class="btn-edit" onclick="editData(${item.rowNum}, '${r[22]}')">แก้</button>
                     <button class="btn-delete" onclick="deleteData(${item.rowNum})">ลบ</button>
-                </td>
+                </td>` : ''}
             </tr>`;
         });
         document.getElementById('tableBody').innerHTML = html;
@@ -504,7 +544,6 @@
         myDataTable = $('#dataTable').DataTable({ "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json" }, "order": [[ 0, "desc" ], [1, "desc"]], "dom": 'Bfrtip', "buttons": [ { extend: 'excelHtml5', text: '📥 ดาวน์โหลด Excel', className: 'btn-modal' } ] });
     }
 
-    // [อัปเดตใหม่] ใช้ Fetch API ลบและแก้ไขข้อมูล
     async function deleteData(rowNum) {
         if(confirm("ยืนยันการลบข้อมูลนี้?")) {
             try {
