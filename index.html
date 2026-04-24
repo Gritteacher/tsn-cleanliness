@@ -510,30 +510,53 @@
         document.getElementById('summarySection').style.display = 'block';
     }
 
-    function drawChart(labels, data, titleText, isTeamComparison) {
+  function drawChart(labels, data, titleText, isTeamComparison) {
         const ctx = document.getElementById('analysisChart').getContext('2d');
         if (myChart) { myChart.destroy(); }
         
         // 🎨 กำหนดสีกราฟแท่ง (ปรับใหม่ตามสีประจำคณะ)
-        // 1. แม้นนฤมิตร (สีม่วง)
-        // 2. เยาวมาลย์อุทิศ (สีน้ำเงิน)
-        // 3. นิภานภดล (สีแสด)
-        // 4. ปิยราชบพิตร (สีชมพู)
-        // 5. ภาณุรังษี (สีแดง)
         let bgColors = isTeamComparison ? 
             [
-                'rgba(155, 89, 182, 0.8)',   // ม่วง (Purple)
-                'rgba(52, 152, 219, 0.8)',   // น้ำเงิน (Blue)
-                'rgba(230, 126, 34, 0.8)',   // แสด (Orange)
-                'rgba(255, 105, 180, 0.8)',  // ชมพู (Pink)
-                'rgba(231, 76, 60, 0.8)'     // แดง (Red)
+                'rgba(155, 89, 182, 0.8)',   // ม่วง (แม้นนฤมิตร)
+                'rgba(52, 152, 219, 0.8)',   // น้ำเงิน (เยาวมาลย์อุทิศ)
+                'rgba(230, 126, 34, 0.8)',   // แสด (นิภานภดล)
+                'rgba(255, 105, 180, 0.8)',  // ชมพู (ปิยราชบพิตร)
+                'rgba(231, 76, 60, 0.8)'     // แดง (ภาณุรังษี)
             ] : 
-            'rgba(0, 125, 67, 0.7)'; // สีเวลาดูทีละคณะ (ยังคงเป็นสีเขียวโรงเรียน)
+            'rgba(0, 125, 67, 0.7)'; // เขียวโรงเรียน (เวลาดูเจาะลึก 1 คณะ)
 
-        // 🖌️ กำหนดสีเส้นขอบของกราฟแท่ง
         let borderColors = isTeamComparison ? 
             ['#9B59B6', '#3498DB', '#E67E22', '#FF69B4', '#E74C3C'] : 
-            '#005a30'; // ขอบสีเขียวเข้มเวลาดูทีละคณะ
+            '#007D43';
+
+        // 🌟 ปลั๊กอินพิเศษสำหรับวาดตัวเลขสวยๆ บนแท่งกราฟ (Modern Data Labels)
+        const showDataLabels = {
+            id: 'showDataLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                ctx.save();
+                // ตั้งค่าฟอนต์ให้ทันสมัย หนา และอ่านง่าย
+                ctx.font = 'bold 15px Sarabun';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+
+                chart.getDatasetMeta(0).data.forEach((datapoint, index) => {
+                    const value = data.datasets[0].data[index];
+                    if (value > 0) {
+                        const x = datapoint.x;
+                        const y = datapoint.y;
+                        
+                        // ดึงสีของเส้นขอบมาทำเป็นสีของตัวเลขให้กลมกลืนกัน
+                        const color = Array.isArray(borderColors) ? borderColors[index] : borderColors;
+                        ctx.fillStyle = color;
+                        
+                        // วาดตัวเลขลอยอยู่เหนือแท่งกราฟเล็กน้อย (y - 8)
+                        ctx.fillText(value, x, y - 8);
+                    }
+                });
+                ctx.restore();
+            }
+        };
 
         myChart = new Chart(ctx, {
             type: 'bar',
@@ -544,19 +567,27 @@
                     data: data, 
                     backgroundColor: bgColors, 
                     borderColor: borderColors, 
-                    borderWidth: 2, // ความหนาของเส้นขอบ
-                    borderRadius: 8 // ความโค้งมนของมุมกราฟ
+                    borderWidth: 2, 
+                    borderRadius: 8 
                 }] 
             },
+            plugins: [showDataLabels], // <--- เรียกใช้ปลั๊กอินแสดงตัวเลขตรงนี้
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false, 
+                layout: {
+                    padding: { top: 25 } // เพิ่มพื้นที่ด้านบนของกราฟ ป้องกันตัวเลขโดนตัด
+                },
                 plugins: { 
                     legend: { display: false }, 
                     title: { display: true, text: titleText, font: { family: 'Sarabun', size: 16, weight: 'bold' } } 
                 }, 
                 scales: { 
-                    y: { beginAtZero: true, max: isTeamComparison ? 20 : 30, ticks: { font: { family: 'Sarabun' } } },
+                    y: { 
+                        beginAtZero: true, 
+                        max: isTeamComparison ? 20 : 35, 
+                        ticks: { font: { family: 'Sarabun' } } 
+                    },
                     x: { ticks: { font: { family: 'Sarabun' } } }
                 } 
             }
