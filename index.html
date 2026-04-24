@@ -510,33 +510,25 @@
         document.getElementById('summarySection').style.display = 'block';
     }
 
-  function drawChart(labels, data, titleText, isTeamComparison) {
+ function drawChart(labels, data, titleText, isTeamComparison) {
         const ctx = document.getElementById('analysisChart').getContext('2d');
         if (myChart) { myChart.destroy(); }
         
-        // 🎨 กำหนดสีกราฟแท่ง (ปรับใหม่ตามสีประจำคณะ)
         let bgColors = isTeamComparison ? 
-            [
-                'rgba(155, 89, 182, 0.8)',   // ม่วง (แม้นนฤมิตร)
-                'rgba(52, 152, 219, 0.8)',   // น้ำเงิน (เยาวมาลย์อุทิศ)
-                'rgba(230, 126, 34, 0.8)',   // แสด (นิภานภดล)
-                'rgba(255, 105, 180, 0.8)',  // ชมพู (ปิยราชบพิตร)
-                'rgba(231, 76, 60, 0.8)'     // แดง (ภาณุรังษี)
-            ] : 
-            'rgba(0, 125, 67, 0.7)'; // เขียวโรงเรียน (เวลาดูเจาะลึก 1 คณะ)
+            ['rgba(155, 89, 182, 0.8)', 'rgba(52, 152, 219, 0.8)', 'rgba(230, 126, 34, 0.8)', 'rgba(255, 105, 180, 0.8)', 'rgba(231, 76, 60, 0.8)'] : 
+            'rgba(0, 125, 67, 0.7)';
 
         let borderColors = isTeamComparison ? 
             ['#9B59B6', '#3498DB', '#E67E22', '#FF69B4', '#E74C3C'] : 
             '#007D43';
 
-        // 🌟 ปลั๊กอินพิเศษสำหรับวาดตัวเลขสวยๆ บนแท่งกราฟ (Modern Data Labels)
+        // 🌟 Plugin สำหรับวาดตัวเลขบนแท่งกราฟ
         const showDataLabels = {
             id: 'showDataLabels',
             afterDatasetsDraw(chart) {
                 const { ctx, data } = chart;
                 ctx.save();
-                // ตั้งค่าฟอนต์ให้ทันสมัย หนา และอ่านง่าย
-                ctx.font = 'bold 15px Sarabun';
+                ctx.font = 'bold 14px Sarabun';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
 
@@ -545,13 +537,9 @@
                     if (value > 0) {
                         const x = datapoint.x;
                         const y = datapoint.y;
-                        
-                        // ดึงสีของเส้นขอบมาทำเป็นสีของตัวเลขให้กลมกลืนกัน
                         const color = Array.isArray(borderColors) ? borderColors[index] : borderColors;
                         ctx.fillStyle = color;
-                        
-                        // วาดตัวเลขลอยอยู่เหนือแท่งกราฟเล็กน้อย (y - 8)
-                        ctx.fillText(value, x, y - 8);
+                        ctx.fillText(value, x, y - 8); // แสดงตัวเลขเหนือแท่งกราฟ
                     }
                 });
                 ctx.restore();
@@ -571,30 +559,24 @@
                     borderRadius: 8 
                 }] 
             },
-            plugins: [showDataLabels], // <--- เรียกใช้ปลั๊กอินแสดงตัวเลขตรงนี้
+            plugins: [showDataLabels], // เปิดใช้งาน Plugin ตัวเลข
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false, 
-                layout: {
-                    padding: { top: 25 } // เพิ่มพื้นที่ด้านบนของกราฟ ป้องกันตัวเลขโดนตัด
-                },
+                layout: { padding: { top: 25 } },
                 plugins: { 
                     legend: { display: false }, 
                     title: { display: true, text: titleText, font: { family: 'Sarabun', size: 16, weight: 'bold' } } 
                 }, 
                 scales: { 
-                    y: { 
-                        beginAtZero: true, 
-                        max: isTeamComparison ? 20 : 35, 
-                        ticks: { font: { family: 'Sarabun' } } 
-                    },
+                    y: { beginAtZero: true, max: isTeamComparison ? 20 : 35, ticks: { font: { family: 'Sarabun' } } },
                     x: { ticks: { font: { family: 'Sarabun' } } }
                 } 
             }
         });
     }
 
-    function renderTable(data) {
+function renderTable(data) {
         let html = '';
         data.forEach(item => {
             const r = item.record;
@@ -610,13 +592,23 @@
                 </td>` : ''}
             </tr>`;
         });
+
         document.getElementById('tableBody').innerHTML = html;
         document.getElementById('loadingData').style.display = 'none';
-        document.getElementById('tableWrapper').style.display = 'block';
+
+        // 🛡️ เช็คสิทธิ์: ถ้าเป็น ADMIN ถึงจะโชว์ตาราง ถ้าเป็น TEAM ให้ซ่อนทั้ง Card
+        const tableCard = document.getElementById('tableWrapper').closest('.card');
+        if (currentUser && currentUser.role === "ADMIN") {
+            document.getElementById('tableWrapper').style.display = 'block';
+            if (tableCard) tableCard.style.display = 'block';
+        } else {
+            document.getElementById('tableWrapper').style.display = 'none';
+            if (tableCard) tableCard.style.display = 'none'; // ซ่อนกล่องตารางทิ้งไปเลยสำหรับคณะสี
+        }
+
         if (myDataTable) { myDataTable.destroy(); }
         myDataTable = $('#dataTable').DataTable({ "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json" }, "order": [[ 0, "desc" ], [1, "desc"]], "dom": 'Bfrtip', "buttons": [ { extend: 'excelHtml5', text: '📥 ดาวน์โหลด Excel', className: 'btn-modal' } ] });
     }
-
     async function deleteData(rowNum) {
         if(confirm("ยืนยันการลบข้อมูลนี้?")) {
             try {
