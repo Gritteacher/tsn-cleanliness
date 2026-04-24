@@ -513,11 +513,53 @@
     function drawChart(labels, data, titleText, isTeamComparison) {
         const ctx = document.getElementById('analysisChart').getContext('2d');
         if (myChart) { myChart.destroy(); }
-        let bgColors = isTeamComparison ? ['rgba(255, 223, 0, 0.7)', 'rgba(255, 105, 180, 0.7)', 'rgba(0, 125, 67, 0.7)', 'rgba(255, 140, 0, 0.7)', 'rgba(0, 191, 255, 0.7)'] : 'rgba(0, 125, 67, 0.6)';
+        
+        // 🎨 กำหนดสีกราฟแท่ง (ปรับใหม่ตามสีประจำคณะ)
+        // 1. แม้นนฤมิตร (สีม่วง)
+        // 2. เยาวมาลย์อุทิศ (สีน้ำเงิน)
+        // 3. นิภานภดล (สีแสด)
+        // 4. ปิยราชบพิตร (สีชมพู)
+        // 5. ภาณุรังษี (สีแดง)
+        let bgColors = isTeamComparison ? 
+            [
+                'rgba(155, 89, 182, 0.8)',   // ม่วง (Purple)
+                'rgba(52, 152, 219, 0.8)',   // น้ำเงิน (Blue)
+                'rgba(230, 126, 34, 0.8)',   // แสด (Orange)
+                'rgba(255, 105, 180, 0.8)',  // ชมพู (Pink)
+                'rgba(231, 76, 60, 0.8)'     // แดง (Red)
+            ] : 
+            'rgba(0, 125, 67, 0.7)'; // สีเวลาดูทีละคณะ (ยังคงเป็นสีเขียวโรงเรียน)
+
+        // 🖌️ กำหนดสีเส้นขอบของกราฟแท่ง
+        let borderColors = isTeamComparison ? 
+            ['#9B59B6', '#3498DB', '#E67E22', '#FF69B4', '#E74C3C'] : 
+            '#005a30'; // ขอบสีเขียวเข้มเวลาดูทีละคณะ
+
         myChart = new Chart(ctx, {
             type: 'bar',
-            data: { labels: labels, datasets: [{ label: 'คะแนนเฉลี่ย', data: data, backgroundColor: bgColors, borderWidth: 1, borderRadius: 6 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: titleText, font: { family: 'Sarabun', size: 16 } } }, scales: { y: { beginAtZero: true, max: isTeamComparison ? 20 : 30, ticks: { font: { family: 'Sarabun' } } } } }
+            data: { 
+                labels: labels, 
+                datasets: [{ 
+                    label: 'คะแนนเฉลี่ย', 
+                    data: data, 
+                    backgroundColor: bgColors, 
+                    borderColor: borderColors, 
+                    borderWidth: 2, // ความหนาของเส้นขอบ
+                    borderRadius: 8 // ความโค้งมนของมุมกราฟ
+                }] 
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { display: false }, 
+                    title: { display: true, text: titleText, font: { family: 'Sarabun', size: 16, weight: 'bold' } } 
+                }, 
+                scales: { 
+                    y: { beginAtZero: true, max: isTeamComparison ? 20 : 30, ticks: { font: { family: 'Sarabun' } } },
+                    x: { ticks: { font: { family: 'Sarabun' } } }
+                } 
+            }
         });
     }
 
